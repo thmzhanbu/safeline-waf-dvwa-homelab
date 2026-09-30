@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+work/
+evidence/private/
+*.burp
+*.har
+*.pcap
+*.pcapng
+*.key
+*.pem
+*.log
+__pycache__/
+.DS_Store
+*.zip

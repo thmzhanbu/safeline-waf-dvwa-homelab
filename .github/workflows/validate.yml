@@ -1,0 +1,22 @@
+name: Validate portfolio
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check shell and Python syntax
+        run: |
+          for script in scripts/*.sh; do bash -n "$script"; done
+          python3 -m py_compile scripts/*.py
+      - name: Validate Compose without starting services
+        env:
+          DVWA_DB_PASSWORD: ci-validation-only-not-a-live-secret
+          DB_ROOT_PASSWORD: ci-validation-only-not-a-live-secret
+        run: docker compose config --quiet
+      - name: Verify report links, results, evidence, and checksums
+        run: python3 scripts/validate-project.py

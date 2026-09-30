@@ -1,0 +1,47 @@
+name: safeline-dvwa-lab
+
+services:
+  dvwa:
+    image: ${DVWA_IMAGE:-ghcr.io/digininja/dvwa:latest}
+    environment:
+      DB_SERVER: db
+      DB_DATABASE: dvwa
+      DB_USER: dvwa
+      DB_PASSWORD: ${DVWA_DB_PASSWORD:?Run bash scripts/init-env.sh first}
+      DEFAULT_SECURITY_LEVEL: low
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8081:80"
+    networks:
+      - frontend
+      - backend
+    restart: "no"
+
+  db:
+    image: ${MARIADB_IMAGE:-mariadb:10}
+    environment:
+      MARIADB_DATABASE: dvwa
+      MARIADB_USER: dvwa
+      MARIADB_PASSWORD: ${DVWA_DB_PASSWORD:?Run bash scripts/init-env.sh first}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Run bash scripts/init-env.sh first}
+    volumes:
+      - dvwa-db:/var/lib/mysql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: "no"
+
+networks:
+  frontend:
+  backend:
+    internal: true
+
+volumes:
+  dvwa-db:
